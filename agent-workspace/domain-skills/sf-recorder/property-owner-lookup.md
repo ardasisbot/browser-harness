@@ -64,9 +64,23 @@ Response: `{"ResultCount": N, "SearchResults": [...], "RefinementPanelData": {..
 
 ### Getting the full party list for one document (no login)
 
-Document detail (`search/GetDocumentDetails/<ID>`) returns all-null fields for guests, and
-the UI pops a login/register modal when you click a row. Skip it. Instead run the search
-scoped to a single document number and read the names facet:
+Document detail (`search/GetDocumentDetails/<ID>`) and the legal-description endpoint
+return all-null fields for guests, and the UI pops a login/register modal when you click a
+row. Two free alternatives:
+
+**A. Names endpoint (best — gives Grantor/Grantee role per name).** Use the row's internal
+`ID` (not the document number):
+
+```
+GET https://recorder.sfgov.org/SearchService/api/search/GetNamesForPagination/<ID>/1/20
+→ {"NamesForPagination":[{"NameTypeDesc":"Grantor","Fullname":"KILTY FAMILY TRUST 2018",...},
+                         {"NameTypeDesc":"Grantee","Fullname":"STAHIHUT ISAAC",...}, ...]}
+```
+
+Same `$http` + `GetSecureKey` setup as above. `TotalNamesCount` tells you whether to page.
+
+**B. Doc-number facet.** Run the search scoped to a single document number and read the
+names facet (no roles, but no extra endpoint):
 
 ```
 &DocNumberFrom=2024006653&DocNumberTo=2024006653
@@ -95,6 +109,14 @@ one instrument (spouses, co-borrowers, trust names). Fire these in parallel from
    rows list every co-borrower, which is effectively the TIC roster on that date.
 5. Recent `DEED OF TRUST` rows confirm who currently holds an interest and whether a
    spouse is on title (both names appear as trustors).
+
+## Which unit does a TIC owner hold?
+
+The index has no unit numbers, and the legal description is behind the paywall. Match the
+deed date to a public sale listing instead: search `"<street address>" sold <month year>`
+(Compass, Redfin, Zillow, Homes.com). A TIC sale shows up as `<address> Unit N` with the
+close date equal to the deed's `DocumentDate`. Redfin also pins the same sale on the
+parcel's other street address, so one sale can appear under two addresses.
 
 ## Traps
 
